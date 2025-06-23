@@ -135,9 +135,17 @@ class AssignmentView {
       answerEl.textContent = answer;
       return;
     }
-    let jobs = answer.perm.map(j => j + 1).join(', ');
-    let workers = answer.perm.map((j, i) => `Работник ${i + 1} → Работа ${j + 1} (C=${answer.table[i].c}, T=${answer.table[i].t})`).join('; ');
-    answerEl.innerHTML = `Назначения: ${workers}<br>Сумма C = ${answer.sumC}, T = ${answer.T_value}`;
+    // answer.perm — массив работ для каждого работника
+    // answer.table — массив объектов с c, t
+    // answer.sumC, answer.T_value
+    let html = '<table><thead><tr><th></th><th><b>Решение</b></th></tr></thead><tbody>';
+    for (let i = 0; i < answer.perm.length; i++) {
+      html += `<tr><th>x${i + 1}</th><td>${answer.perm[i] + 1} (C: ${answer.table[i].c}, T: ${answer.table[i].t})</td></tr>`;
+    }
+    html += `<tr><th>S</th><td>${answer.sumC}</td></tr>`;
+    html += `<tr><th>T</th><td>${answer.T_value}</td></tr>`;
+    html += '</tbody></table>';
+    answerEl.innerHTML = html;
   }
 
   renderSolutionTable(solutions) {
@@ -145,7 +153,7 @@ class AssignmentView {
     let html = '<table><thead><tr><th></th>';
     // Заголовки: Решение 1, Решение 2, ...
     solutions.forEach((sol, idx) => {
-      html += `<th${sol.valid ? '' : ' style=\"opacity:0.5\"'}>Решение ${idx + 1}</th>`;
+      html += `<th${sol.valid ? '' : ' style=\"opacity:0.5\"'}>Решение № ${idx + 1}</th>`;
     });
     html += '</tr></thead><tbody>';
     // Для каждого работника — строка
@@ -156,7 +164,7 @@ class AssignmentView {
         const jobIdx = sol.perm[i];
         const c = sol.table[i].c;
         const t = sol.table[i].t;
-        html += `<td${sol.valid ? '' : ' style=\"opacity:0.5\"'}>${jobIdx + 1} (C=${c}, T=${t})</td>`;
+        html += `<td${sol.valid ? '' : ' style=\"opacity:0.5\"'}>${jobIdx + 1} (C: ${c}, T: ${t})</td>`;
       });
       html += '</tr>';
     }

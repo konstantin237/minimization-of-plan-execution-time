@@ -69,8 +69,12 @@ button#solve-btn:hover {
 #answer {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #2a7ae2;
+  color: #000;
   margin-bottom: 1rem;
+  td{font-weight: normal;}
+  th, td {
+    text-align: left;
+  }
 }
 #solution-table {
   overflow-x: auto;
