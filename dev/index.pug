@@ -1,0 +1,32 @@
+doctype html
+html
+  head
+    title Задача о назначениях
+    link(rel="stylesheet", href="./assets/css/first_styles.min.css")
+  body
+    main.container
+      h1 Задача о назначениях
+      form#assignment-form
+        .matrix-inputs
+          .matrix-block
+            label(for="matrix-c-textarea") Матрица C (стоимости)
+            textarea#matrix-c-textarea(placeholder="Введите элементы матрицы через пробел, строки отделяйте переносами\nНапример для матрицы 3x3:\n1 2 3\n4 5 6\n7 8 9")
+          .matrix-block
+            label(for="matrix-t-textarea") Матрица T (времена)
+            textarea#matrix-t-textarea(placeholder="Введите элементы матрицы через пробел, строки отделяйте переносами\nНапример для матрицы 3x3:\n1 2 3\n4 5 6\n7 8 9")
+        .params
+          label(for="salary-fund") Фонд зарплаты S:
+          input#salary-fund(type="number" name="S" min="0" value="0")
+          label(for="t-type") Тип оптимизации T:
+          select#t-type(name="T")
+            option(value="min" selected) min
+            option(value="max") max
+          label(for="t-limit") Ограничение на T (Если в условии не указано, оставить пустым):
+          input#t-limit(type="number" name="T_limit" min="0" step="any")
+        button#solve-btn(type="button") Решить
+      section#solution
+        h2 Ответ
+        p#answer
+        h3 Ход решения
+        div#solution-table
+    script(type="module" src="./assets/js/first_script.js") 
