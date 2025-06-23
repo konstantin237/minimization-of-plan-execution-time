@@ -48,11 +48,18 @@ class AssignmentModel {
       let T_value = this.T_type === 'min' ? Math.max(...times) : Math.min(...times);
       let valid = true;
       if (this.S && sumC > this.S) valid = false;
-      if (this.T_limit !== '' && ((this.T_type === 'min' && T_value > this.T_limit) || (this.T_type === 'max' && T_value < this.T_limit))) valid = false;
+      // Не фильтруем по T_limit здесь, фильтрация будет ниже
       solutions.push({ perm, sumC, T_value, table, valid });
     }
-    // Выбираем оптимальное решение
+    // Новый алгоритм выбора решения
     let filtered = solutions.filter(s => s.valid);
+    if (this.T_limit !== '') {
+      if (this.T_type === 'min') {
+        filtered = filtered.filter(s => s.T_value <= this.T_limit);
+      } else {
+        filtered = filtered.filter(s => s.T_value >= this.T_limit);
+      }
+    }
     if (filtered.length === 0) return { answer: 'Нет допустимых решений', solutions };
     let best;
     if (this.T_type === 'min') {

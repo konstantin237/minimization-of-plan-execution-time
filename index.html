@@ -30,7 +30,7 @@
             <option value="min" selected>min</option>
             <option value="max">max</option>
           </select>
-          <label for="t-limit">Ограничение на T (T_limit):</label>
+          <label for="t-limit">Ограничение на T (Если в условии не указано, оставить пустым):</label>
           <input id="t-limit" type="number" name="T_limit" min="0" step="any">
         </div>
         <button id="solve-btn" type="button">Решить</button>
