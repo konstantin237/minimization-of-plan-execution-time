@@ -1,0 +1,35 @@
+@import "../1_basic_components/libs/reset_css";
+
+@import "../1_basic_components/libs/smartgrid/smartgrid";
+
+@import "../1_basic_components/fonts";
+
+@import "../1_basic_components/my_mixins";
+
+//@import "../1_basic_components/media_queries/";
+
+
+/* */
+
+html,
+body {
+  font-size: 10px;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.overflow-x_hidden {
+  overflow-x: hidden;
+  overflow-x: hidden !important;
+}
+
+/*
+.gradient {
+  @include gradient(right, $grList1)
+}*/
