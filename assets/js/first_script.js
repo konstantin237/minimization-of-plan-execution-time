@@ -73,6 +73,9 @@ class AssignmentView {
     this.matrixC = document.getElementById('matrix-c');
     this.matrixT = document.getElementById('matrix-t');
     this.renderMatrixInputs();
+    // Сделать S пустым по умолчанию
+    const salaryFundInput = document.getElementById('salary-fund');
+    if (salaryFundInput) salaryFundInput.value = '';
   }
 
   renderMatrixInputs() {
@@ -85,7 +88,7 @@ class AssignmentView {
         let cellC = document.createElement('td');
         let inputC = document.createElement('input');
         inputC.type = 'number';
-        inputC.value = 0;
+        inputC.value = '';
         inputC.min = 0;
         inputC.className = 'matrix-c-input';
         inputC.dataset.row = i;
@@ -96,7 +99,7 @@ class AssignmentView {
         let cellT = document.createElement('td');
         let inputT = document.createElement('input');
         inputT.type = 'number';
-        inputT.value = 0;
+        inputT.value = '';
         inputT.min = 0;
         inputT.className = 'matrix-t-input';
         inputT.dataset.row = i;
