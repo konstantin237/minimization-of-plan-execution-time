@@ -1,7 +1,7 @@
 .container {
-  max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
+  width: 90%;
 }
 h1 {
   text-align: center;
@@ -50,12 +50,24 @@ table {
   border-collapse: collapse;
   width: 100%;
   margin-bottom: 1rem;
+
+  table-layout: auto;        /* Позволяет колонкам подстраиваться по содержимому */
 }
+
+
 td, th {
   border: 1px solid #ccc;
   padding: 0.5rem;
   text-align: center;
+
+  white-space: normal;       /* Разрешаем перенос строк */
+  word-break: break-word;    /* Переносим слова, если надо */
+  padding: 0.5rem;           /* Внутренние отступы (можно убрать/уменьшить) */
+  text-align: center;
+  vertical-align: middle;    /* Выравниваем текст по центру ячейки */
+  min-width: 6em;            /* Минимальная ширина ячейки — чтобы не были слишком узкие */
 }
+
 input[type="number"], select {
   padding: 0.4rem 0.7rem;
   border-radius: 0.4rem;

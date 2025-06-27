@@ -75,67 +75,30 @@ class AssignmentModel {
 
 // View
 class AssignmentView {
-  constructor(size = 3) {
-    this.size = size;
+  constructor() {
     this.matrixCTextarea = document.getElementById('matrix-c-textarea');
     this.matrixTTextarea = document.getElementById('matrix-t-textarea');
-    this.initTextareas();
-    // Сделать S пустым по умолчанию
-    const salaryFundInput = document.getElementById('salary-fund');
-    if (salaryFundInput) salaryFundInput.value = '';
+    // Сделать S по умолчанию пустым (или оставить, если будет задано в HTML)
   }
 
-  initTextareas() {
-    // Устанавливаем размер textarea в зависимости от размера матрицы
-    if (this.matrixCTextarea) {
-      this.matrixCTextarea.rows = this.size;
-      this.matrixCTextarea.cols = this.size * 3; // Примерная ширина для элементов
-    }
-    if (this.matrixTTextarea) {
-      this.matrixTTextarea.rows = this.size;
-      this.matrixTTextarea.cols = this.size * 3; // Примерная ширина для элементов
-    }
-  }
-
-  // Парсинг матрицы из textarea
+  // Новый метод: получить матрицу и размер
   parseMatrixFromTextarea(textareaValue) {
-    const lines = textareaValue.trim().split('\n');
-    const matrix = [];
-    
-    for (let i = 0; i < this.size; i++) {
-      if (i < lines.length) {
-        const line = lines[i].trim();
-        const elements = line.split(/\s+/).filter(el => el !== '');
-        const row = [];
-        
-        for (let j = 0; j < this.size; j++) {
-          if (j < elements.length) {
-            const value = parseFloat(elements[j]);
-            row.push(isNaN(value) ? 0 : value);
-          } else {
-            row.push(0);
-          }
-        }
-        matrix.push(row);
-      } else {
-        // Если строк недостаточно, заполняем нулями
-        matrix.push(Array(this.size).fill(0));
-      }
-    }
-    
-    return matrix;
+    const lines = textareaValue.trim().split('\n').filter(line => line.trim() !== '');
+    const matrix = lines.map(line => line.trim().split(/\s+/).map(Number));
+    // Проверка на прямоугольность (обрезать лишние элементы, если строки разной длины)
+    const minLen = Math.min(...matrix.map(row => row.length));
+    const squareMatrix = matrix.map(row => row.slice(0, minLen));
+    return { matrix: squareMatrix, size: squareMatrix.length };
   }
 
   getMatrixC() {
-    if (!this.matrixCTextarea) return Array.from({ length: this.size }, () => Array(this.size).fill(0));
+    if (!this.matrixCTextarea) return { matrix: [], size: 0 };
     return this.parseMatrixFromTextarea(this.matrixCTextarea.value);
   }
-
   getMatrixT() {
-    if (!this.matrixTTextarea) return Array.from({ length: this.size }, () => Array(this.size).fill(0));
+    if (!this.matrixTTextarea) return { matrix: [], size: 0 };
     return this.parseMatrixFromTextarea(this.matrixTTextarea.value);
   }
-
   getParams() {
     return {
       S: +document.getElementById('salary-fund').value,
@@ -143,16 +106,12 @@ class AssignmentView {
       T_limit: document.getElementById('t-limit').value === '' ? '' : +document.getElementById('t-limit').value
     };
   }
-
   renderAnswer(answer) {
     const answerEl = document.getElementById('answer');
     if (typeof answer === 'string') {
       answerEl.textContent = answer;
       return;
     }
-    // answer.perm — массив работ для каждого работника
-    // answer.table — массив объектов с c, t
-    // answer.sumC, answer.T_value
     let html = '<table><thead><tr><th></th><th><b>Решение</b></th></tr></thead><tbody>';
     for (let i = 0; i < answer.perm.length; i++) {
       html += `<tr><th>x${i + 1}</th><td>${answer.perm[i] + 1} (C: ${answer.table[i].c}, T: ${answer.table[i].t})</td></tr>`;
@@ -162,20 +121,18 @@ class AssignmentView {
     html += '</tbody></table>';
     answerEl.innerHTML = html;
   }
-
   renderSolutionTable(solutions) {
     const tableDiv = document.getElementById('solution-table');
+    if (!solutions || solutions.length === 0) { tableDiv.innerHTML = ''; return; }
+    const n = solutions[0].perm.length;
     let html = '<table><thead><tr><th></th>';
-    // Заголовки: Решение 1, Решение 2, ...
     solutions.forEach((sol, idx) => {
       html += `<th${sol.valid ? '' : ' style=\"opacity:0.5\"'}>Решение № ${idx + 1}</th>`;
     });
     html += '</tr></thead><tbody>';
-    // Для каждого работника — строка
-    for (let i = 0; i < this.size; i++) {
-      html += `<tr><th>Работник ${i + 1}</th>`;
-      solutions.forEach((sol, idx) => {
-        // Найти работу, которую выполняет этот работник в этом решении
+    for (let i = 0; i < n; i++) {
+      html += `<tr><th>x${i + 1}</th>`;
+      solutions.forEach((sol) => {
         const jobIdx = sol.perm[i];
         const c = sol.table[i].c;
         const t = sol.table[i].t;
@@ -183,13 +140,11 @@ class AssignmentView {
       });
       html += '</tr>';
     }
-    // Строка S (сумма C)
     html += '<tr><th>S</th>';
     solutions.forEach((sol) => {
       html += `<td${sol.valid ? '' : ' style=\"opacity:0.5\"'}>${sol.sumC}</td>`;
     });
     html += '</tr>';
-    // Строка T
     html += '<tr><th>T</th>';
     solutions.forEach((sol) => {
       html += `<td${sol.valid ? '' : ' style=\"opacity:0.5\"'}>${sol.T_value}</td>`;
@@ -202,19 +157,28 @@ class AssignmentView {
 
 // Controller
 class AssignmentController {
-  constructor(size = 3) {
-    this.model = new AssignmentModel(size);
-    this.view = new AssignmentView(size);
+  constructor() {
+    this.model = null;
+    this.view = new AssignmentView();
     this.initEvents();
   }
-
   initEvents() {
     document.getElementById('solve-btn').addEventListener('click', () => this.solve());
   }
-
   solve() {
-    this.model.setMatrixC(this.view.getMatrixC());
-    this.model.setMatrixT(this.view.getMatrixT());
+    const { matrix: C, size: sizeC } = this.view.getMatrixC();
+    const { matrix: T, size: sizeT } = this.view.getMatrixT();
+    window.assignmentModelInputC = C;
+    window.assignmentModelInputT = T;
+    const n = Math.min(sizeC, sizeT);
+    if (!n || C.length !== n || T.length !== n) {
+      this.view.renderAnswer('Ошибка: некорректный ввод матриц');
+      this.view.renderSolutionTable([]);
+      return;
+    }
+    this.model = new AssignmentModel(n);
+    this.model.setMatrixC(C);
+    this.model.setMatrixT(T);
     const params = this.view.getParams();
     this.model.setS(params.S);
     this.model.setTType(params.T_type);
@@ -227,5 +191,5 @@ class AssignmentController {
 
 // Инициализация
 window.addEventListener('DOMContentLoaded', () => {
-  new AssignmentController(3);
+  new AssignmentController();
 }); 
