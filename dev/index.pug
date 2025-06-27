@@ -33,10 +33,18 @@ html
             option(value="max") max
           label(for="t-limit") Ограничение на T (Если в условии не указано, оставить пустым):
           input#t-limit(type="number" name="T_limit" min="0" step="any")
+          label
+            input#skip-increasing-time(type="checkbox" checked)
+            | Не считать время, если оно больше одного из предыдущих времен
+          br
+          label
+            input#hide-invalid-solutions(type="checkbox" checked)
+            | не отображать решения, которые не удовлетворяют ограничениям
         button#solve-btn(type="button") Решить
       section#solution
         h2 Ответ
         p#answer
-        h3 Ход решения
+        h3 Решение полным перебором
         div#solution-table
+        div#extra-methods
     script(type="module" src="./assets/js/first_script.js") 

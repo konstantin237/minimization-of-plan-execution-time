@@ -44,14 +44,21 @@
           </select>
           <label for="t-limit">Ограничение на T (Если в условии не указано, оставить пустым):</label>
           <input id="t-limit" type="number" name="T_limit" min="0" step="any">
+          <label>
+            <input id="skip-increasing-time" type="checkbox" checked>Не считать время, если оно больше одного из предыдущих времен
+          </label><br>
+          <label>
+            <input id="hide-invalid-solutions" type="checkbox" checked>не отображать решения, которые не удовлетворяют ограничениям
+          </label>
         </div>
         <button id="solve-btn" type="button">Решить</button>
       </form>
       <section id="solution">
         <h2>Ответ</h2>
         <p id="answer"></p>
-        <h3>Ход решения</h3>
+        <h3>Решение полным перебором</h3>
         <div id="solution-table"></div>
+        <div id="extra-methods"></div>
       </section>
     </main>
     <script type="module" src="./assets/js/first_script.js"> </script>
