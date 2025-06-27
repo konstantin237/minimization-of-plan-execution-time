@@ -152,17 +152,19 @@ class AssignmentView {
     if (!this.matrixTTextarea) return { matrix: [], size: 0, isSquare: false };
     return this.parseMatrixFromTextarea(this.matrixTTextarea.value);
   }
-  renderAnswer(answer) {
+  renderAnswer(answer, solutions) {
     const answerEl = document.getElementById('answer');
     if (typeof answer === 'string') {
       answerEl.textContent = answer;
       return;
     }
-    // Если несколько решений — выводим все
+    // Если несколько решений — выводим все с их номерами из solutions
     if (Array.isArray(answer)) {
       let html = '';
-      answer.forEach((ans, idx) => {
-        html += `<b>Решение ${idx + 1}</b>`;
+      answer.forEach((ans) => {
+        // Найти номер решения в solutions (индекс + 1)
+        let idx = solutions.findIndex(s => JSON.stringify(s.perm) === JSON.stringify(ans.perm));
+        html += `<b>Решение №${idx + 1}</b>`;
         html += '<table><thead><tr><th></th><th><b>Решение</b></th></tr></thead><tbody>';
         for (let i = 0; i < ans.perm.length; i++) {
           html += `<tr><th>x${i + 1}</th><td>${ans.perm[i] + 1} (C: ${ans.table[i].c}, T: ${ans.table[i].t})</td></tr>`;
@@ -174,8 +176,10 @@ class AssignmentView {
       answerEl.innerHTML = html;
       return;
     }
-    // Обычный вывод для одного решения
-    let html = '<table><thead><tr><th></th><th><b>Решение</b></th></tr></thead><tbody>';
+    // Обычный вывод для одного решения с его номером
+    let idx = solutions.findIndex(s => JSON.stringify(s.perm) === JSON.stringify(answer.perm));
+    let html = `<b>Решение №${idx + 1}</b>`;
+    html += '<table><thead><tr><th></th><th><b>Решение</b></th></tr></thead><tbody>';
     for (let i = 0; i < answer.perm.length; i++) {
       html += `<tr><th>x${i + 1}</th><td>${answer.perm[i] + 1} (C: ${answer.table[i].c}, T: ${answer.table[i].t})</td></tr>`;
     }
@@ -455,7 +459,7 @@ class AssignmentController {
     this.model.setTType(params.T_type);
     this.model.setTLimit(params.T_limit);
     const { answer, solutions } = this.model.solve(params);
-    this.view.renderAnswer(answer.answer || answer);
+    this.view.renderAnswer(answer.answer || answer, solutions);
     this.view.renderSolutionTable(solutions);
     this.view.renderExtraMethods(C, params);
   }
