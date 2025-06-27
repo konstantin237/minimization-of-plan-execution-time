@@ -39,8 +39,30 @@ html
           br
           label
             input#hide-invalid-solutions(type="checkbox" checked)
-            | не отображать решения, которые не удовлетворяют ограничениям
+            | Не отображать решения, которые не удовлетворяют ограничениям
+          br
+          br
+          h3 Работают неправильно:
+          label
+            input#solve-hungarian(type="checkbox" checked)
+            | Решить методом Венгера (венгерский алгоритм)
+          br
+          label
+            input#solve-branch(type="checkbox" checked)
+            | Решить методом ветвей и границ
+          br
+          label
+            input#solve-lp(type="checkbox" checked)
+            | Решить методом линейного программирования
+          br
+          label
+            input#solve-greedy(type="checkbox" checked)
+            | Решить жадным методом
         button#solve-btn(type="button") Решить
+      .preset-buttons
+        button#fill-default(type="button") Заполнить значениями по умолчанию
+        button#fill-test(type="button") Заполнить тестовыми значениями
+        button#clear-all(type="button") Очистить все поля
       section#solution
         h2 Ответ
         p#answer

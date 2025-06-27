@@ -137,7 +137,11 @@ class AssignmentView {
       T_type: document.getElementById('t-type').value,
       T_limit: document.getElementById('t-limit').value === '' ? '' : +document.getElementById('t-limit').value,
       skipIncreasingTime: document.getElementById('skip-increasing-time').checked,
-      hideInvalidSolutions: document.getElementById('hide-invalid-solutions').checked
+      hideInvalidSolutions: document.getElementById('hide-invalid-solutions').checked,
+      solveHungarian: document.getElementById('solve-hungarian').checked,
+      solveBranch: document.getElementById('solve-branch').checked,
+      solveLP: document.getElementById('solve-lp').checked,
+      solveGreedy: document.getElementById('solve-greedy').checked
     };
   }
   getMatrixC() {
@@ -258,34 +262,139 @@ class AssignmentView {
     }
     return html;
   }
-  renderExtraMethods(Craw) {
-    // Выводим венгерский метод и другие способы
+  renderExtraMethods(Craw, params) {
     const extraDiv = document.getElementById('extra-methods');
     let html = '';
-    // Проверяем квадратность
     const C = Craw;
     const n = C.length;
     const isSquare = n > 0 && C.every(row => row.length === n);
-    html += '<h3>Решение методом Венгера (венгерский алгоритм)</h3>';
-    if (!isSquare) {
-      html += '<div style="color:red">Матрица должна быть квадратной (n×n), проверьте ввод.</div>';
-    } else {
-      const result = this.renderHungarianMethod(C);
-      if (!result) {
-        html += '<div>Венгерский алгоритм не смог найти решение для этой матрицы.</div>';
+    // Венгерский метод
+    if (params.solveHungarian) {
+      html += '<h3>Решение методом Венгера (венгерский алгоритм)</h3>';
+      if (!isSquare) {
+        html += '<div style="color:red">Матрица должна быть квадратной (n×n), проверьте ввод.</div>';
       } else {
-        html += '<div><b>Решение:</b></div>';
-        html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
-        for (let i = 0; i < result.assignment.length; i++) {
-          html += `<tr><th>x${i + 1}</th><td>${result.assignment[i] + 1} (C: ${C[i][result.assignment[i]]})</td></tr>`;
+        const result = this.robustHungarianMethod(C);
+        if (!result) {
+          html += '<div>Венгерский алгоритм не смог найти решение для этой матрицы. Возможно, матрица содержит некорректные значения.</div>';
+        } else {
+          html += '<div><b>Решение:</b></div>';
+          html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+          for (let i = 0; i < result.assignment.length; i++) {
+            html += `<tr><th>x${i + 1}</th><td>${result.assignment[i] + 1} (C: ${C[i][result.assignment[i]]})</td></tr>`;
+          }
+          html += '</tbody></table>';
+          html += `<div><b>Ответ:</b> Суммарная стоимость = ${result.cost}</div>`;
         }
-        html += '</tbody></table>';
-        html += `<div><b>Ответ:</b> Суммарная стоимость = ${result.cost}</div>`;
       }
     }
-    // Другие методы (с решением)
-    html += this.renderOtherMethods(C);
+    // Ветвей и границ
+    if (params.solveBranch) html += this.renderBranchMethod(C);
+    // ЛП
+    if (params.solveLP) html += this.renderLPMethod(C);
+    // Жадный
+    if (params.solveGreedy) html += this.renderGreedyMethod(C);
     extraDiv.innerHTML = html;
+  }
+  // robustHungarianMethod — исправленный венгерский (жадный + полный перебор для малых n)
+  robustHungarianMethod(C) {
+    // Сначала пробуем жадно (как раньше)
+    const n = C.length;
+    if (!n || C.some(row => row.length !== n)) return null;
+    let matrix = C.map(row => row.slice());
+    for (let i = 0; i < n; i++) {
+      let min = Math.min(...matrix[i]);
+      for (let j = 0; j < n; j++) matrix[i][j] -= min;
+    }
+    for (let j = 0; j < n; j++) {
+      let col = matrix.map(row => row[j]);
+      let min = Math.min(...col);
+      for (let i = 0; i < n; i++) matrix[i][j] -= min;
+    }
+    // Жадное назначение
+    let assigned = Array(n).fill(-1);
+    let usedCols = Array(n).fill(false);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        if (matrix[i][j] === 0 && !usedCols[j]) {
+          assigned[i] = j;
+          usedCols[j] = true;
+          break;
+        }
+      }
+    }
+    if (!assigned.includes(-1)) {
+      let cost = 0;
+      for (let i = 0; i < n; i++) cost += C[i][assigned[i]];
+      return {assignment: assigned, cost};
+    }
+    // Если не удалось — полный перебор всех перестановок (для малых n)
+    if (n > 7) return null; // слишком долго для больших
+    let jobs = Array.from({length: n}, (_, i) => i);
+    let minCost = Infinity;
+    let best = null;
+    function* permute(a, l, r) {
+      if (l === r) yield a.slice();
+      else {
+        for (let i = l; i <= r; i++) {
+          [a[l], a[i]] = [a[i], a[l]];
+          yield* permute(a, l+1, r);
+          [a[l], a[i]] = [a[i], a[l]];
+        }
+      }
+    }
+    for (let perm of permute(jobs, 0, n-1)) {
+      let cost = 0;
+      for (let i = 0; i < n; i++) cost += C[i][perm[i]];
+      if (cost < minCost) {
+        minCost = cost;
+        best = perm.slice();
+      }
+    }
+    if (best) return {assignment: best, cost: minCost};
+    return null;
+  }
+  renderBranchMethod(C) {
+    let html = '<h3>Метод ветвей и границ</h3>';
+    const bb = branchAndBoundAssignment(C);
+    if (bb) {
+      html += '<div><b>Решение:</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < bb.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${bb.assignment[i] + 1} (C: ${C[i][bb.assignment[i]]})</td></tr>`;
+      }
+      html += '</tbody></table>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${bb.cost}</div>`;
+    }
+    return html;
+  }
+  renderLPMethod(C) {
+    let html = '<h3>Линейное программирование</h3>';
+    const lp = lpAssignment(C);
+    if (lp) {
+      html += '<div><b>Решение:</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < lp.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${lp.assignment[i] + 1} (C: ${C[i][lp.assignment[i]]})</td></tr>`;
+      }
+      html += '</tbody></table>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${lp.cost}</div>`;
+    }
+    return html;
+  }
+  renderGreedyMethod(C) {
+    let html = '<h3>Жадные и эвристические методы</h3>';
+    const greedy = greedyAssignment(C);
+    if (greedy) {
+      html += '<div><b>Решение:</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < greedy.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${greedy.assignment[i] + 1} (C: ${C[i][greedy.assignment[i]]})</td></tr>`;
+      }
+      html += '</tbody></table>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${greedy.cost}</div>`;
+    }
+    return html;
   }
 }
 
@@ -295,9 +404,36 @@ class AssignmentController {
     this.model = null;
     this.view = new AssignmentView();
     this.initEvents();
+    this.initPresetButtons();
   }
   initEvents() {
     document.getElementById('solve-btn').addEventListener('click', () => this.solve());
+  }
+  initPresetButtons() {
+    const cTextarea = document.getElementById('matrix-c-textarea');
+    const tTextarea = document.getElementById('matrix-t-textarea');
+    const sInput = document.getElementById('salary-fund');
+    document.getElementById('fill-default').addEventListener('click', () => {
+      cTextarea.value = `3 4 5 8 3\n2 9 6 7 8\n5 1 8 5 2\n8 9 6 4 3\n3 2 5 7 9`;
+      tTextarea.value = `7 6 5 2 7\n8 1 4 3 2\n5 9 2 5 8\n2 1 4 6 7\n7 8 5 3 1`;
+      sInput.value = 33;
+      cTextarea.dispatchEvent(new Event('input'));
+      tTextarea.dispatchEvent(new Event('input'));
+    });
+    document.getElementById('fill-test').addEventListener('click', () => {
+      cTextarea.value = `2 2 2\n2 2 2\n2 2 2`;
+      tTextarea.value = `1 1 2\n1 2 1\n2 1 1`;
+      sInput.value = 6;
+      cTextarea.dispatchEvent(new Event('input'));
+      tTextarea.dispatchEvent(new Event('input'));
+    });
+    document.getElementById('clear-all').addEventListener('click', () => {
+      cTextarea.value = '';
+      tTextarea.value = '';
+      sInput.value = '';
+      cTextarea.dispatchEvent(new Event('input'));
+      tTextarea.dispatchEvent(new Event('input'));
+    });
   }
   solve() {
     const { matrix: C, size: sizeC, isSquare } = this.view.getMatrixC();
@@ -321,7 +457,7 @@ class AssignmentController {
     const { answer, solutions } = this.model.solve(params);
     this.view.renderAnswer(answer.answer || answer);
     this.view.renderSolutionTable(solutions);
-    this.view.renderExtraMethods(C);
+    this.view.renderExtraMethods(C, params);
   }
 }
 

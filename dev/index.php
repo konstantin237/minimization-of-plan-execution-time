@@ -48,11 +48,29 @@
             <input id="skip-increasing-time" type="checkbox" checked>Не считать время, если оно больше одного из предыдущих времен
           </label><br>
           <label>
-            <input id="hide-invalid-solutions" type="checkbox" checked>не отображать решения, которые не удовлетворяют ограничениям
+            <input id="hide-invalid-solutions" type="checkbox" checked>Не отображать решения, которые не удовлетворяют ограничениям
+          </label><br><br>
+          <h3>Работают неправильно:</h3>
+          <label>
+            <input id="solve-hungarian" type="checkbox" checked>Решить методом Венгера (венгерский алгоритм)
+          </label><br>
+          <label>
+            <input id="solve-branch" type="checkbox" checked>Решить методом ветвей и границ
+          </label><br>
+          <label>
+            <input id="solve-lp" type="checkbox" checked>Решить методом линейного программирования
+          </label><br>
+          <label>
+            <input id="solve-greedy" type="checkbox" checked>Решить жадным методом
           </label>
         </div>
         <button id="solve-btn" type="button">Решить</button>
       </form>
+      <div class="preset-buttons">
+        <button id="fill-default" type="button">Заполнить значениями по умолчанию</button>
+        <button id="fill-test" type="button">Заполнить тестовыми значениями</button>
+        <button id="clear-all" type="button">Очистить все поля</button>
+      </div>
       <section id="solution">
         <h2>Ответ</h2>
         <p id="answer"></p>
