@@ -420,10 +420,6 @@ class AssignmentView {
     const extraDiv = document.getElementById('extra-methods');
     let html = '';
     const C = Craw;
-    html += '<div style="margin-bottom:10px">';
-    html += '<label><input type="checkbox" id="solve-bnb-strict" ' + (params.solveBnbStrict ? 'checked' : '') + '> Ветвей и границ (строгий)</label> ';
-    html += '<label><input type="checkbox" id="solve-astar" ' + (params.solveAstar ? 'checked' : '') + '> A* (A-star)</label>';
-    html += '</div>';
     const { matrix: T } = this.getMatrixT();
     if (params.solveBnbStrict) {
       html += this.renderBnbStrict(C, T, params);

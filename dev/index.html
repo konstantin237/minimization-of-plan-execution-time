@@ -52,16 +52,10 @@
           </label><br><br>
           <h3>Работают правильно:</h3>
           <label>
-            <input id="solve-hungarian" type="checkbox" checked>Решить методом Венгера (венгерский алгоритм)
+            <input id="solve-bnb-strict" type="checkbox" checked>Ветвей и границ (строгий)
           </label><br>
           <label>
-            <input id="solve-branch" type="checkbox" checked>Решить методом ветвей и границ
-          </label><br>
-          <label>
-            <input id="solve-lp" type="checkbox" checked>Решить методом линейного программирования
-          </label><br>
-          <label>
-            <input id="solve-greedy" type="checkbox" checked>Решить жадным методом
+            <input id="solve-astar" type="checkbox" checked>A* (A-star)
           </label>
         </div>
         <button id="solve-btn" type="button">Решить</button>

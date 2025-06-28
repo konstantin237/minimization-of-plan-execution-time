@@ -44,20 +44,13 @@ html
           br
           h3 Работают правильно:
           label
-            input#solve-hungarian(type="checkbox" checked)
-            | Решить методом Венгера (венгерский алгоритм)
+            input#solve-bnb-strict(type="checkbox" checked)
+            | Ветвей и границ (строгий)
           br
           label
-            input#solve-branch(type="checkbox" checked)
-            | Решить методом ветвей и границ
-          br
-          label
-            input#solve-lp(type="checkbox" checked)
-            | Решить методом линейного программирования
-          br
-          label
-            input#solve-greedy(type="checkbox" checked)
-            | Решить жадным методом
+            input#solve-astar(type="checkbox" checked)
+            | A* (A-star)
+
         button#solve-btn(type="button") Решить
       .preset-buttons
         button#fill-default(type="button") Заполнить значениями по умолчанию
