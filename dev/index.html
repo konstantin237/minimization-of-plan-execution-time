@@ -61,9 +61,9 @@
         <button class="btn btn_solve" id="solve-btn" type="button">Решить</button>
       </form>
       <div class="preset-buttons">
-        <button class="btn" id="fill-default" type="button">Заполнить значениями по умолчанию</button>
-        <button class="btn" id="fill-test" type="button">Заполнить тестовыми значениями</button>
-        <button class="btn" id="clear-all" type="button">Очистить все поля</button>
+        <button class="btn" id="fill-default" type="button">Заполнить значениями<br>по умолчанию</button>
+        <button class="btn" id="fill-test" type="button">Заполнить тестовыми<br>значениями</button>
+        <button class="btn" id="clear-all" type="button">Очистить<br>все поля</button>
       </div>
       <section id="solution">
         <h2>Ответ</h2>
