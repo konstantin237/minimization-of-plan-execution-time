@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Венгерского алгоритма</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .matrix {
+            font-family: monospace;
+            white-space: pre;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f5e8;
+            border-radius: 3px;
+        }
+        .error {
+            background: #ffe8e8;
+            color: #c00;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест Венгерского алгоритма</h1>
+    <p>Проверка новой реализации Венгерского алгоритма с полным набором шагов для матриц C (стоимости) и T (времена).</p>
+    
+    <div id="results"></div>
+
+    <script type="module">
+        import { hungarianMethod } from './assets/js/hungarian.js';
+        
+        // Тестовые матрицы
+        const testCases = [
+            {
+                name: "Простая матрица 3x3",
+                matrixC: [
+                    [2, 2, 2],
+                    [2, 2, 2],
+                    [2, 2, 2]
+                ],
+                matrixT: [
+                    [1, 1, 1],
+                    [1, 1, 1],
+                    [1, 1, 1]
+                ]
+            },
+            {
+                name: "Матрица с разными значениями",
+                matrixC: [
+                    [3, 4, 5, 8, 3],
+                    [2, 9, 6, 7, 8],
+                    [5, 1, 8, 5, 2],
+                    [8, 9, 6, 4, 3],
+                    [3, 2, 5, 7, 9]
+                ],
+                matrixT: [
+                    [7, 6, 5, 2, 7],
+                    [8, 1, 4, 3, 2],
+                    [5, 9, 2, 5, 8],
+                    [2, 1, 4, 6, 7],
+                    [7, 8, 5, 3, 1]
+                ]
+            },
+            {
+                name: "Матрица с оптимальным решением",
+                matrixC: [
+                    [1, 2, 3],
+                    [2, 4, 6],
+                    [3, 6, 9]
+                ],
+                matrixT: [
+                    [1, 2, 3],
+                    [2, 4, 6],
+                    [3, 6, 9]
+                ]
+            }
+        ];
+        
+        function displayMatrix(matrix) {
+            return matrix.map(row => row.join(' ')).join('\n');
+        }
+        
+        function displayResult(testCase, resultC, resultT) {
+            const div = document.createElement('div');
+            div.className = 'test-case';
+            
+            let html = `<h3>${testCase.name}</h3>`;
+            html += `<div class="matrix">Матрица C (стоимости):\n${displayMatrix(testCase.matrixC)}</div>`;
+            html += `<div class="matrix">Матрица T (времена):\n${displayMatrix(testCase.matrixT)}</div>`;
+            
+            if (resultC) {
+                html += `<div class="result">`;
+                html += `<strong>Решение для матрицы C (стоимости):</strong><br>`;
+                html += `Назначения: ${resultC.assignment.map((col, row) => `Работник ${row + 1} → Задача ${col + 1}`).join(', ')}<br>`;
+                html += `Общая стоимость: ${resultC.cost}`;
+                html += `</div>`;
+            } else {
+                html += `<div class="result error">Решение для матрицы C не найдено</div>`;
+            }
+            
+            if (resultT) {
+                html += `<div class="result">`;
+                html += `<strong>Решение для матрицы T (времена):</strong><br>`;
+                html += `Назначения: ${resultT.assignment.map((col, row) => `Работник ${row + 1} → Задача ${col + 1}`).join(', ')}<br>`;
+                html += `Общее время: ${resultT.cost}`;
+                html += `</div>`;
+            } else {
+                html += `<div class="result error">Решение для матрицы T не найдено</div>`;
+            }
+            
+            div.innerHTML = html;
+            return div;
+        }
+        
+        // Запускаем тесты
+        const resultsDiv = document.getElementById('results');
+        
+        testCases.forEach(testCase => {
+            try {
+                const resultC = hungarianMethod(testCase.matrixC);
+                const resultT = hungarianMethod(testCase.matrixT);
+                resultsDiv.appendChild(displayResult(testCase, resultC, resultT));
+            } catch (error) {
+                const div = document.createElement('div');
+                div.className = 'test-case';
+                div.innerHTML = `
+                    <h3>${testCase.name}</h3>
+                    <div class="matrix">Матрица C:\n${displayMatrix(testCase.matrixC)}</div>
+                    <div class="matrix">Матрица T:\n${displayMatrix(testCase.matrixT)}</div>
+                    <div class="result error">Ошибка: ${error.message}</div>
+                `;
+                resultsDiv.appendChild(div);
+            }
+        });
+    </script>
+</body>
+</html> 

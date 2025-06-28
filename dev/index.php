@@ -50,7 +50,7 @@
           <label>
             <input id="hide-invalid-solutions" type="checkbox" checked>Не отображать решения, которые не удовлетворяют ограничениям
           </label><br><br>
-          <h3>Работают неправильно:</h3>
+          <h3>Работают правильно:</h3>
           <label>
             <input id="solve-hungarian" type="checkbox" checked>Решить методом Венгера (венгерский алгоритм)
           </label><br>

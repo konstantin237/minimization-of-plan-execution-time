@@ -2,6 +2,9 @@ import { hungarianMethod } from './hungarian.js';
 import { branchAndBoundAssignment } from './branch_and_bound.js';
 import { lpAssignment } from './lp_assignment.js';
 import { greedyAssignment } from './greedy_assignment.js';
+import { branchAndBoundStrictAssignment } from './branch_and_bound_strict.js';
+import { dpAssignment } from './dp_assignment.js';
+import { astarAssignment } from './astar_assignment.js';
 
 // Model
 class AssignmentModel {
@@ -138,10 +141,9 @@ class AssignmentView {
       T_limit: document.getElementById('t-limit').value === '' ? '' : +document.getElementById('t-limit').value,
       skipIncreasingTime: document.getElementById('skip-increasing-time').checked,
       hideInvalidSolutions: document.getElementById('hide-invalid-solutions').checked,
-      solveHungarian: document.getElementById('solve-hungarian').checked,
-      solveBranch: document.getElementById('solve-branch').checked,
-      solveLP: document.getElementById('solve-lp').checked,
-      solveGreedy: document.getElementById('solve-greedy').checked
+      solveFull: document.getElementById('solve-full') ? document.getElementById('solve-full').checked : true,
+      solveBnbStrict: document.getElementById('solve-bnb-strict') ? document.getElementById('solve-bnb-strict').checked : true,
+      solveAstar: document.getElementById('solve-astar') ? document.getElementById('solve-astar').checked : true
     };
   }
   getMatrixC() {
@@ -190,35 +192,7 @@ class AssignmentView {
   }
   renderSolutionTable(solutions) {
     const tableDiv = document.getElementById('solution-table');
-    if (!solutions || solutions.length === 0) { tableDiv.innerHTML = ''; return; }
-    const n = solutions[0].perm.length;
-    let html = '<table><thead><tr><th></th>';
-    solutions.forEach((sol, idx) => {
-      html += `<th${sol.valid ? '' : ' style=\"opacity:0.5\"'}>Решение № ${idx + 1}</th>`;
-    });
-    html += '</tr></thead><tbody>';
-    for (let i = 0; i < n; i++) {
-      html += `<tr><th>x${i + 1}</th>`;
-      solutions.forEach((sol) => {
-        const jobIdx = sol.perm[i];
-        const c = sol.table[i].c;
-        const t = sol.table[i].t;
-        html += `<td${sol.valid ? '' : ' style=\"opacity:0.5\"'}>${jobIdx + 1} (C: ${c}, T: ${t})</td>`;
-      });
-      html += '</tr>';
-    }
-    html += '<tr><th>S</th>';
-    solutions.forEach((sol) => {
-      html += `<td${sol.valid ? '' : ' style=\"opacity:0.5\"'}>${sol.sumC}</td>`;
-    });
-    html += '</tr>';
-    html += '<tr><th>T</th>';
-    solutions.forEach((sol) => {
-      html += `<td${sol.valid ? '' : ' style=\"opacity:0.5\"'}>${sol.T_value}</td>`;
-    });
-    html += '</tr>';
-    html += '</tbody></table>';
-    tableDiv.innerHTML = html;
+    tableDiv.innerHTML = '';
   }
   renderHungarianMethod(C) {
     return hungarianMethod(C);
@@ -266,39 +240,281 @@ class AssignmentView {
     }
     return html;
   }
+  renderAdvancedMethods(C, T, params) {
+    let html = '<h3>Дополнительные точные методы (с ограничениями)</h3>';
+    // Корректная обработка ограничений
+    const S = (params.S === '' || isNaN(params.S)) ? null : params.S;
+    const T_limit = (params.T_limit === '' || isNaN(params.T_limit)) ? null : params.T_limit;
+    // Ветвей и границ с ограничениями
+    let bnb = branchAndBoundStrictAssignment(C, T, S, params.T_type, T_limit);
+    if (bnb) {
+      html += '<div><b>Ветвей и границ (строгий):</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < bnb.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${bnb.assignment[i] + 1} (C: ${C[i][bnb.assignment[i]]}, T: ${T[i][bnb.assignment[i]]})</td></tr>`;
+      }
+      html += `</tbody></table><div><b>Ответ:</b> S = ${bnb.cost}, T = ${bnb.T_value}</div>`;
+    } else {
+      // Без ограничений
+      let bnbAny = branchAndBoundStrictAssignment(C, T, null, params.T_type, null);
+      if (bnbAny) {
+        html += '<div style="color:orange"><b>Нет допустимого решения по ограничениям. Лучшее решение без ограничений:</b></div>';
+        html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+        for (let i = 0; i < bnbAny.assignment.length; i++) {
+          html += `<tr><th>x${i + 1}</th><td>${bnbAny.assignment[i] + 1} (C: ${C[i][bnbAny.assignment[i]]}, T: ${T[i][bnbAny.assignment[i]]})</td></tr>`;
+        }
+        html += `</tbody></table><div><b>Ответ:</b> S = ${bnbAny.cost}, T = ${bnbAny.T_value}</div>`;
+      } else {
+        html += '<div>Нет решений даже без ограничений</div>';
+      }
+    }
+    // A*
+    let astar = astarAssignment(C, T, S, params.T_type, T_limit);
+    if (astar) {
+      html += '<div><b>A* (A-star):</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < astar.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${astar.assignment[i] + 1} (C: ${C[i][astar.assignment[i]]}, T: ${T[i][astar.assignment[i]]})</td></tr>`;
+      }
+      html += `</tbody></table><div><b>Ответ:</b> S = ${astar.cost}, T = ${astar.T_value}</div>`;
+    } else {
+      let astarAny = astarAssignment(C, T, null, params.T_type, null);
+      if (astarAny) {
+        html += '<div style="color:orange"><b>Нет допустимого решения по ограничениям (A*). Лучшее решение без ограничений:</b></div>';
+        html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+        for (let i = 0; i < astarAny.assignment.length; i++) {
+          html += `<tr><th>x${i + 1}</th><td>${astarAny.assignment[i] + 1} (C: ${C[i][astarAny.assignment[i]]}, T: ${T[i][astarAny.assignment[i]]})</td></tr>`;
+        }
+        html += `</tbody></table><div><b>Ответ:</b> S = ${astarAny.cost}, T = ${astarAny.T_value}</div>`;
+      } else {
+        html += '<div>Нет решений даже без ограничений (A*)</div>';
+      }
+    }
+    return html;
+  }
   renderExtraMethods(Craw, params) {
     const extraDiv = document.getElementById('extra-methods');
     let html = '';
     const C = Craw;
     const n = C.length;
     const isSquare = n > 0 && C.every(row => row.length === n);
-    // Венгерский метод
-    if (params.solveHungarian) {
-      html += '<h3>Решение методом Венгера (венгерский алгоритм)</h3>';
-      if (!isSquare) {
-        html += '<div style="color:red">Матрица должна быть квадратной (n×n), проверьте ввод.</div>';
-      } else {
-        const result = this.robustHungarianMethod(C);
-        if (!result) {
-          html += '<div>Венгерский алгоритм не смог найти решение для этой матрицы. Возможно, матрица содержит некорректные значения.</div>';
-        } else {
-          html += '<div><b>Решение:</b></div>';
-          html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
-          for (let i = 0; i < result.assignment.length; i++) {
-            html += `<tr><th>x${i + 1}</th><td>${result.assignment[i] + 1} (C: ${C[i][result.assignment[i]]})</td></tr>`;
-          }
-          html += '</tbody></table>';
-          html += `<div><b>Ответ:</b> Суммарная стоимость = ${result.cost}</div>`;
+    // Чекбоксы для трёх методов
+    html += '<div style="margin-bottom:10px">';
+    html += '<label><input type="checkbox" id="solve-full" ' + (params.solveFull ? 'checked' : '') + '> Полный перебор</label> ';
+    html += '<label><input type="checkbox" id="solve-bnb-strict" ' + (params.solveBnbStrict ? 'checked' : '') + '> Ветвей и границ (строгий)</label> ';
+    html += '<label><input type="checkbox" id="solve-astar" ' + (params.solveAstar ? 'checked' : '') + '> A* (A-star)</label>';
+    html += '</div>';
+    // --- Методы ---
+    const { matrix: T } = this.getMatrixT();
+    if (params.solveFull) {
+      html += this.renderFullEnumeration(C, T, params);
+    }
+    if (params.solveBnbStrict) {
+      html += this.renderBnbStrict(C, T, params);
+    }
+    if (params.solveAstar) {
+      html += this.renderAstar(C, T, params);
+    }
+    extraDiv.innerHTML = html;
+  }
+  renderFullEnumeration(C, T, params) {
+    // Реализация полного перебора (перестановки)
+    const n = C.length;
+    if (!n || C.some(row => row.length !== n)) return '<div>Матрица должна быть квадратной</div>';
+    let jobs = Array.from({ length: n }, (_, i) => i);
+    let minT = Infinity, minS = Infinity, bests = [];
+    let all = [];
+    function* permute(a, l, r) {
+      if (l === r) yield a.slice();
+      else {
+        for (let i = l; i <= r; i++) {
+          [a[l], a[i]] = [a[i], a[l]];
+          yield* permute(a, l+1, r);
+          [a[l], a[i]] = [a[i], a[l]];
         }
       }
     }
-    // Ветвей и границ
-    if (params.solveBranch) html += this.renderBranchMethod(C);
-    // ЛП
-    if (params.solveLP) html += this.renderLPMethod(C);
-    // Жадный
-    if (params.solveGreedy) html += this.renderGreedyMethod(C);
-    extraDiv.innerHTML = html;
+    for (let perm of permute(jobs, 0, n-1)) {
+      let sumC = 0, times = [];
+      for (let i = 0; i < n; i++) {
+        sumC += C[i][perm[i]];
+        times.push(T[i][perm[i]]);
+      }
+      let Tval = params.T_type === 'min' ? Math.max(...times) : Math.min(...times);
+      all.push({ perm: perm.slice(), sumC, Tval });
+    }
+    // Найти все равновыгодные решения
+    minT = Math.min(...all.map(x => x.Tval));
+    let minTsolutions = all.filter(x => x.Tval === minT);
+    minS = Math.min(...minTsolutions.map(x => x.sumC));
+    bests = minTsolutions.filter(x => x.sumC === minS);
+    if (!bests.length) return '<div>Нет решений</div>';
+    let html = '<h3>Полный перебор</h3>';
+    bests.forEach((best, idx) => {
+      html += `<b>Решение №${idx + 1}</b>`;
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < n; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${best.perm[i] + 1} (C: ${C[i][best.perm[i]]}, T: ${T[i][best.perm[i]]})</td></tr>`;
+      }
+      html += `<tr><th>S</th><td>${best.sumC}</td></tr>`;
+      html += `<tr><th>T</th><td>${best.Tval}</td></tr>`;
+      html += '</tbody></table>';
+    });
+    // Ход решения
+    html += '<details><summary>Ход решения</summary>';
+    html += '<table><thead><tr><th>Перестановка</th><th>S</th><th>T</th></tr></thead><tbody>';
+    all.forEach(x => {
+      html += `<tr><td>${x.perm.map(i => i + 1).join('-')}</td><td>${x.sumC}</td><td>${x.Tval}</td></tr>`;
+    });
+    html += '</tbody></table></details>';
+    return html;
+  }
+  renderBnbStrict(C, T, params) {
+    // Корректная обработка ограничений
+    const S = (params.S === '' || isNaN(params.S)) ? null : params.S;
+    const T_limit = (params.T_limit === '' || isNaN(params.T_limit)) ? null : params.T_limit;
+    let allSolutions = [];
+    // Модифицируем branchAndBoundStrictAssignment для сбора всех решений
+    function collectAllBnB(C, T, S_limit, T_type, T_limit) {
+      const n = C.length;
+      let bestT = T_type === 'min' ? Infinity : -Infinity;
+      let bestS = Infinity;
+      let all = [];
+      function dfs(i, used, perm, sumC, times) {
+        if (i === n) {
+          let Tval = T_type === 'min' ? Math.max(...times) : Math.min(...times);
+          let valid = true;
+          if (S_limit !== null && sumC > S_limit) valid = false;
+          if (T_limit !== null) {
+            if (T_type === 'min' && Tval > T_limit) valid = false;
+            if (T_type === 'max' && Tval < T_limit) valid = false;
+          }
+          if (valid) {
+            all.push({ perm: perm.slice(), sumC, Tval });
+            if ((T_type === 'min' && (Tval < bestT || (Tval === bestT && sumC < bestS))) ||
+                (T_type === 'max' && (Tval > bestT || (Tval === bestT && sumC < bestS)))) {
+              bestT = Tval;
+              bestS = sumC;
+            }
+          }
+          return;
+        }
+        for (let j = 0; j < n; j++) {
+          if (!used[j]) {
+            let newSumC = sumC + C[i][j];
+            if (S_limit !== null && newSumC > S_limit) continue;
+            used[j] = true;
+            perm.push(j);
+            times.push(T[i][j]);
+            dfs(i + 1, used, perm, newSumC, times);
+            used[j] = false;
+            perm.pop();
+            times.pop();
+          }
+        }
+      }
+      dfs(0, Array(n).fill(false), [], 0, []);
+      // Выбрать все равновыгодные
+      let bests = all.filter(x => x.Tval === bestT && x.sumC === bestS);
+      return { bests, all };
+    }
+    let { bests, all } = collectAllBnB(C, T, S, params.T_type, T_limit);
+    let html = '<h3>Ветвей и границ (строгий)</h3>';
+    if (bests.length) {
+      bests.forEach((best, idx) => {
+        html += `<b>Решение №${idx + 1}</b>`;
+        html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+        for (let i = 0; i < C.length; i++) {
+          html += `<tr><th>x${i + 1}</th><td>${best.perm[i] + 1} (C: ${C[i][best.perm[i]]}, T: ${T[i][best.perm[i]]})</td></tr>`;
+        }
+        html += `<tr><th>S</th><td>${best.sumC}</td></tr>`;
+        html += `<tr><th>T</th><td>${best.Tval}</td></tr>`;
+        html += '</tbody></table>';
+      });
+    } else {
+      html += '<div>Нет допустимого решения</div>';
+    }
+    // Ход решения
+    html += '<details><summary>Ход решения</summary>';
+    html += '<table><thead><tr><th>Перестановка</th><th>S</th><th>T</th></tr></thead><tbody>';
+    all.forEach(x => {
+      html += `<tr><td>${x.perm.map(i => i + 1).join('-')}</td><td>${x.sumC}</td><td>${x.Tval}</td></tr>`;
+    });
+    html += '</tbody></table></details>';
+    return html;
+  }
+  renderAstar(C, T, params) {
+    // Корректная обработка ограничений
+    const S = (params.S === '' || isNaN(params.S)) ? null : params.S;
+    const T_limit = (params.T_limit === '' || isNaN(params.T_limit)) ? null : params.T_limit;
+    // Модифицируем astarAssignment для сбора всех решений
+    function collectAllAstar(C, T, S_limit, T_type, T_limit) {
+      const n = C.length;
+      let bestT = T_type === 'min' ? Infinity : -Infinity;
+      let bestS = Infinity;
+      let all = [];
+      function dfs(i, used, perm, sumC, times) {
+        if (i === n) {
+          let Tval = T_type === 'min' ? Math.max(...times) : Math.min(...times);
+          let valid = true;
+          if (S_limit !== null && sumC > S_limit) valid = false;
+          if (T_limit !== null) {
+            if (T_type === 'min' && Tval > T_limit) valid = false;
+            if (T_type === 'max' && Tval < T_limit) valid = false;
+          }
+          if (valid) {
+            all.push({ perm: perm.slice(), sumC, Tval });
+            if ((T_type === 'min' && (Tval < bestT || (Tval === bestT && sumC < bestS))) ||
+                (T_type === 'max' && (Tval > bestT || (Tval === bestT && sumC < bestS)))) {
+              bestT = Tval;
+              bestS = sumC;
+            }
+          }
+          return;
+        }
+        for (let j = 0; j < n; j++) {
+          if (!used[j]) {
+            let newSumC = sumC + C[i][j];
+            if (S_limit !== null && newSumC > S_limit) continue;
+            used[j] = true;
+            perm.push(j);
+            times.push(T[i][j]);
+            dfs(i + 1, used, perm, newSumC, times);
+            used[j] = false;
+            perm.pop();
+            times.pop();
+          }
+        }
+      }
+      dfs(0, Array(n).fill(false), [], 0, []);
+      // Выбрать все равновыгодные
+      let bests = all.filter(x => x.Tval === bestT && x.sumC === bestS);
+      return { bests, all };
+    }
+    let { bests, all } = collectAllAstar(C, T, S, params.T_type, T_limit);
+    let html = '<h3>A* (A-star)</h3>';
+    if (bests.length) {
+      bests.forEach((best, idx) => {
+        html += `<b>Решение №${idx + 1}</b>`;
+        html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+        for (let i = 0; i < C.length; i++) {
+          html += `<tr><th>x${i + 1}</th><td>${best.perm[i] + 1} (C: ${C[i][best.perm[i]]}, T: ${T[i][best.perm[i]]})</td></tr>`;
+        }
+        html += `<tr><th>S</th><td>${best.sumC}</td></tr>`;
+        html += `<tr><th>T</th><td>${best.Tval}</td></tr>`;
+        html += '</tbody></table>';
+      });
+    } else {
+      html += '<div>Нет допустимого решения</div>';
+    }
+    // Ход решения
+    html += '<details><summary>Ход решения</summary>';
+    html += '<table><thead><tr><th>Перестановка</th><th>S</th><th>T</th></tr></thead><tbody>';
+    all.forEach(x => {
+      html += `<tr><td>${x.perm.map(i => i + 1).join('-')}</td><td>${x.sumC}</td><td>${x.Tval}</td></tr>`;
+    });
+    html += '</tbody></table></details>';
+    return html;
   }
   // robustHungarianMethod — исправленный венгерский (жадный + полный перебор для малых n)
   robustHungarianMethod(C) {
