@@ -1,13 +1,17 @@
-.container {
+// Блок assignment (основной контейнер)
+.assignment {
   margin: 0 auto;
   padding: 2rem;
   width: 90%;
+
+  &__title {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
 }
-h1 {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-form#assignment-form {
+
+// Блок assignment-form (форма)
+.assignment-form {
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -15,79 +19,83 @@ form#assignment-form {
   padding: 2rem;
   border-radius: 1rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-.matrix-inputs {
-  display: flex;
-  gap: 2rem;
-}
-.matrix-block {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.matrix-block textarea {
-  flex: 1 1 auto;
-  min-height: 120px;
-  resize: vertical;
-}
-.matrix-block label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-}
-textarea {
-  width: 100%;
-  min-height: 120px;
-  padding: 0.8rem;
-  border: 1px solid #bbb;
-  border-radius: 0.4rem;
-  font-family: monospace;
-  font-size: 14px;
-  line-height: 1.4;
-  resize: vertical;
-  box-sizing: border-box;
-  margin-bottom: 1rem;
-}
-textarea:focus {
-  outline: none;
-  border-color: #2a7ae2;
-  box-shadow: 0 0 0 2px rgba(42, 122, 226, 0.2);
-}
-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-bottom: 1rem;
 
-  table-layout: auto;        /* Позволяет колонкам подстраиваться по содержимому */
+  &__matrix-inputs {
+    display: flex;
+    gap: 2rem;
+  }
+
+  &__matrix-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .assignment-form__textarea {
+      flex: 1 1 auto;
+      min-height: 120px;
+      resize: vertical;
+    }
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+  }
+
+  &__textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 0.8rem;
+    border: 1px solid #bbb;
+    border-radius: 0.4rem;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    resize: vertical;
+    box-sizing: border-box;
+    margin-bottom: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: #2a7ae2;
+      box-shadow: 0 0 0 2px rgba(42, 122, 226, 0.2);
+    }
+  }
+
+  &__input,
+  &__select {
+    padding: 0.4rem 0.7rem;
+    border-radius: 0.4rem;
+    border: 1px solid #bbb;
+    margin-bottom: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__checkbox-label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  &__checkbox {
+    margin-right: 0.5rem;
+  }
+
+  &__methods-title {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
 }
 
-
-td, th {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-  text-align: center;
-
-  white-space: normal;       /* Разрешаем перенос строк */
-  word-break: break-word;    /* Переносим слова, если надо */
-  padding: 0.5rem;           /* Внутренние отступы (можно убрать/уменьшить) */
-  text-align: center;
-  vertical-align: middle;    /* Выравниваем текст по центру ячейки */
-  min-width: 6em;            /* Минимальная ширина ячейки — чтобы не были слишком узкие */
-}
-
-input[type="number"], select {
-  padding: 0.4rem 0.7rem;
-  border-radius: 0.4rem;
-  border: 1px solid #bbb;
-  margin-bottom: 1rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-.preset-buttons{
+// Блок preset-buttons (кнопки предустановок)
+.preset-buttons {
   display: flex;
   gap: max(10px, 1vw);
 }
-.btn{
+
+// Блок btn (кнопки)
+.btn {
   max-width: 45%;
   padding: 0.7rem 2rem;
   background: #527094;
@@ -102,31 +110,78 @@ input[type="number"], select {
     background: #2f3e53;
   }
 
-  &_solve{
+  &_solve {
     background: #2a7ae2;
+    
     &:hover {
       background: #1a5bb8;
-      }
+    }
+  }
+
+  &_preset {
+    background: #527094;
+    
+    &:hover {
+      background: #2f3e53;
+    }
   }
 }
 
-#solution {
+// Блок solution (секция с решением)
+.solution {
   margin-top: 2rem;
   background: #fff;
   padding: 1.5rem;
   border-radius: 1rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-#answer {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 1rem;
-  td{font-weight: normal;}
-  th, td {
-    text-align: left;
+
+  &__title {
+    margin-bottom: 1rem;
+  }
+
+  &__answer {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 1rem;
+
+    td {
+      font-weight: normal;
+    }
+
+    th, td {
+      text-align: left;
+    }
+  }
+
+  &__subtitle {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  &__table {
+    overflow-x: auto;
+  }
+
+  &__extra-methods {
+    margin-top: 1.5rem;
   }
 }
-#solution-table {
-  overflow-x: auto;
+
+// Общие стили для таблиц
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 1rem;
+  table-layout: auto;
+}
+
+td, th {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  vertical-align: middle;
+  min-width: 6em;
 } 

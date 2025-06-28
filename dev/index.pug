@@ -4,75 +4,71 @@ html
     title Задача о назначениях
     link(rel="stylesheet", href="./assets/css/first_styles.min.css")
   body
-    main.container
-      h1 Задача о назначениях
-      form#assignment-form
-        .matrix-inputs
-          .matrix-block
-            label(for="matrix-c-textarea") Матрица C (стоимости)
-            textarea#matrix-c-textarea(placeholder="Введите элементы матрицы через пробел, строки отделяйте переносами\nНапример для матрицы 3x3:\n1 2 3\n4 5 6\n7 8 9")
+    main.assignment
+      h1.assignment__title Задача о назначениях
+      form.assignment-form#assignment-form
+        .assignment-form__matrix-inputs
+          .assignment-form__matrix-block
+            label.assignment-form__label(for="matrix-c-textarea") Матрица C (стоимости)
+            textarea.assignment-form__textarea#matrix-c-textarea(placeholder="Введите элементы матрицы через пробел, строки отделяйте переносами\nНапример для матрицы 3x3:\n1 2 3\n4 5 6\n7 8 9")
               | 3 4 5 8 3
               | 2 9 6 7 8
               | 5 1 8 5 2
               | 8 9 6 4 3
               | 3 2 5 7 9
-          .matrix-block
-            label(for="matrix-t-textarea") Матрица T (времена)
-            textarea#matrix-t-textarea(placeholder="Введите элементы матрицы через пробел, строки отделяйте переносами\nНапример для матрицы 3x3:\n1 2 3\n4 5 6\n7 8 9")
+          .assignment-form__matrix-block
+            label.assignment-form__label(for="matrix-t-textarea") Матрица T (времена)
+            textarea.assignment-form__textarea#matrix-t-textarea(placeholder="Введите элементы матрицы через пробел, строки отделяйте переносами\nНапример для матрицы 3x3:\n1 2 3\n4 5 6\n7 8 9")
               | 7 6 5 2 7
               | 8 1 4 3 2
               | 5 9 2 5 8
               | 2 1 4 6 7
               | 7 8 5 3 1
-        .params
-          label(for="salary-fund") Фонд зарплаты S:
-          input#salary-fund(type="number" name="S" min="0" value="33")
-          label(for="t-type") Тип оптимизации T:
-          select#t-type(name="T")
+        .assignment-form__params
+          label.assignment-form__label(for="salary-fund") Фонд зарплаты S:
+          input.assignment-form__input#salary-fund(type="number" name="S" min="0" value="33")
+          label.assignment-form__label(for="t-type") Тип оптимизации T:
+          select.assignment-form__select#t-type(name="T")
             option(value="min" selected) min
             option(value="max") max
-          label(for="t-limit") Ограничение на T (Если в условии не указано, оставить пустым):
-          input#t-limit(type="number" name="T_limit" min="0" step="any")
-          label
-            input#skip-increasing-time(type="checkbox" checked)
+          label.assignment-form__label(for="t-limit") Ограничение на T (Если в условии не указано, оставить пустым):
+          input.assignment-form__input#t-limit(type="number" name="T_limit" min="0" step="any")
+          label.assignment-form__checkbox-label
+            input.assignment-form__checkbox#skip-increasing-time(type="checkbox" checked)
             | Не считать время, если оно больше одного из предыдущих времен
-          br
-          label
-            input#hide-invalid-solutions(type="checkbox" checked)
+          label.assignment-form__checkbox-label
+            input.assignment-form__checkbox#hide-invalid-solutions(type="checkbox" checked)
             | Не отображать решения, которые не удовлетворяют ограничениям
-          br
-          br
-          h3 Работают правильно:
-          label
-            input#solve-bnb-strict(type="checkbox" checked)
+          h3.assignment-form__methods-title Работают правильно:
+          label.assignment-form__checkbox-label
+            input.assignment-form__checkbox#solve-bnb-strict(type="checkbox" checked)
             | Ветвей и границ (строгий)
-          br
-          label
-            input#solve-astar(type="checkbox" checked)
+
+          label.assignment-form__checkbox-label
+            input.assignment-form__checkbox#solve-astar(type="checkbox" checked)
             | A* (A-star)
 
         button.btn.btn_solve#solve-btn(type="button") Решить
       .preset-buttons
-
-        button.btn#fill-default(type="button")
+        button.btn.btn_preset#fill-default(type="button")
           | Заполнить значениями
           br
           | по умолчанию
 
-        button.btn#fill-test(type="button")
+        button.btn.btn_preset#fill-test(type="button")
           | Заполнить тестовыми
           br
           | значениями
 
-        button.btn#clear-all(type="button")
+        button.btn.btn_preset#clear-all(type="button")
           | Очистить
           br
           | все поля
 
-      section#solution
-        h2 Ответ
-        p#answer
-        h3 Решение полным перебором
-        div#solution-table
-        div#extra-methods
+      section.solution#solution
+        h2.solution__title Ответ
+        p.solution__answer#answer
+        h3.solution__subtitle Решение полным перебором
+        div.solution__table#solution-table
+        div.solution__extra-methods#extra-methods
     script(type="module" src="./assets/js/first_script.js") 
