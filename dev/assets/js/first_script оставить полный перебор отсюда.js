@@ -1,5 +1,7 @@
-import { branchAndBoundStrictAssignment } from './branch_and_bound_strict.js';
-import { astarAssignment } from './astar_assignment.js';
+import { hungarianMethod } from './hungarian.js';
+import { branchAndBoundAssignment } from './branch_and_bound.js';
+import { lpAssignment } from './lp_assignment.js';
+import { greedyAssignment } from './greedy_assignment.js';
 
 // Model
 class AssignmentModel {
@@ -136,9 +138,10 @@ class AssignmentView {
       T_limit: document.getElementById('t-limit').value === '' ? '' : +document.getElementById('t-limit').value,
       skipIncreasingTime: document.getElementById('skip-increasing-time').checked,
       hideInvalidSolutions: document.getElementById('hide-invalid-solutions').checked,
-      solveFull: document.getElementById('solve-full') ? document.getElementById('solve-full').checked : true,
-      solveBnbStrict: document.getElementById('solve-bnb-strict') ? document.getElementById('solve-bnb-strict').checked : true,
-      solveAstar: document.getElementById('solve-astar') ? document.getElementById('solve-astar').checked : true
+      solveHungarian: document.getElementById('solve-hungarian').checked,
+      solveBranch: document.getElementById('solve-branch').checked,
+      solveLP: document.getElementById('solve-lp').checked,
+      solveGreedy: document.getElementById('solve-greedy').checked
     };
   }
   getMatrixC() {
@@ -217,13 +220,123 @@ class AssignmentView {
     html += '</tbody></table>';
     tableDiv.innerHTML = html;
   }
-  renderFullEnumeration(C, T, params) {
-    // Реализация полного перебора (перестановки)
+  renderHungarianMethod(C) {
+    return hungarianMethod(C);
+  }
+  renderOtherMethods(C) {
+    let html = '';
+    // --- Ветвей и границ ---
+    html += '<h3>Метод ветвей и границ</h3>';
+    html += '<div>Метод ветвей и границ строит дерево решений, отбрасывая заведомо невыгодные варианты. Обычно используется для больших задач, когда полный перебор невозможен.</div>';
+    const bb = branchAndBoundAssignment(C);
+    if (bb) {
+      html += '<div><b>Решение:</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < bb.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${bb.assignment[i] + 1} (C: ${C[i][bb.assignment[i]]})</td></tr>`;
+      }
+      html += '</tbody></table>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${bb.cost}</div>`;
+    }
+    // --- ЛП ---
+    html += '<h3>Линейное программирование</h3>';
+    html += '<div>Задача о назначениях может быть сведена к задаче линейного программирования и решена симплекс-методом или другими LP-алгоритмами.</div>';
+    const lp = lpAssignment(C);
+    if (lp) {
+      html += '<div><b>Решение:</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < lp.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${lp.assignment[i] + 1} (C: ${C[i][lp.assignment[i]]})</td></tr>`;
+      }
+      html += '</tbody></table>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${lp.cost}</div>`;
+    }
+    // --- Жадный ---
+    html += '<h3>Жадные и эвристические методы</h3>';
+    html += '<div>Жадные методы назначают работ по принципу минимальной стоимости на каждом шаге, но не гарантируют оптимальности.</div>';
+    const greedy = greedyAssignment(C);
+    if (greedy) {
+      html += '<div><b>Решение:</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < greedy.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${greedy.assignment[i] + 1} (C: ${C[i][greedy.assignment[i]]})</td></tr>`;
+      }
+      html += '</tbody></table>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${greedy.cost}</div>`;
+    }
+    return html;
+  }
+  renderExtraMethods(Craw, params) {
+    const extraDiv = document.getElementById('extra-methods');
+    let html = '';
+    const C = Craw;
     const n = C.length;
-    if (!n || C.some(row => row.length !== n)) return '<div>Матрица должна быть квадратной</div>';
-    let jobs = Array.from({ length: n }, (_, i) => i);
-    let minT = Infinity, minS = Infinity, bests = [];
-    let all = [];
+    const isSquare = n > 0 && C.every(row => row.length === n);
+    // Венгерский метод
+    if (params.solveHungarian) {
+      html += '<h3>Решение методом Венгера (венгерский алгоритм)</h3>';
+      if (!isSquare) {
+        html += '<div style="color:red">Матрица должна быть квадратной (n×n), проверьте ввод.</div>';
+      } else {
+        const result = this.robustHungarianMethod(C);
+        if (!result) {
+          html += '<div>Венгерский алгоритм не смог найти решение для этой матрицы. Возможно, матрица содержит некорректные значения.</div>';
+        } else {
+          html += '<div><b>Решение:</b></div>';
+          html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+          for (let i = 0; i < result.assignment.length; i++) {
+            html += `<tr><th>x${i + 1}</th><td>${result.assignment[i] + 1} (C: ${C[i][result.assignment[i]]})</td></tr>`;
+          }
+          html += '</tbody></table>';
+          html += `<div><b>Ответ:</b> Суммарная стоимость = ${result.cost}</div>`;
+        }
+      }
+    }
+    // Ветвей и границ
+    if (params.solveBranch) html += this.renderBranchMethod(C);
+    // ЛП
+    if (params.solveLP) html += this.renderLPMethod(C);
+    // Жадный
+    if (params.solveGreedy) html += this.renderGreedyMethod(C);
+    extraDiv.innerHTML = html;
+  }
+  // robustHungarianMethod — исправленный венгерский (жадный + полный перебор для малых n)
+  robustHungarianMethod(C) {
+    // Сначала пробуем жадно (как раньше)
+    const n = C.length;
+    if (!n || C.some(row => row.length !== n)) return null;
+    let matrix = C.map(row => row.slice());
+    for (let i = 0; i < n; i++) {
+      let min = Math.min(...matrix[i]);
+      for (let j = 0; j < n; j++) matrix[i][j] -= min;
+    }
+    for (let j = 0; j < n; j++) {
+      let col = matrix.map(row => row[j]);
+      let min = Math.min(...col);
+      for (let i = 0; i < n; i++) matrix[i][j] -= min;
+    }
+    // Жадное назначение
+    let assigned = Array(n).fill(-1);
+    let usedCols = Array(n).fill(false);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        if (matrix[i][j] === 0 && !usedCols[j]) {
+          assigned[i] = j;
+          usedCols[j] = true;
+          break;
+        }
+      }
+    }
+    if (!assigned.includes(-1)) {
+      let cost = 0;
+      for (let i = 0; i < n; i++) cost += C[i][assigned[i]];
+      return {assignment: assigned, cost};
+    }
+    // Если не удалось — полный перебор всех перестановок (для малых n)
+    if (n > 7) return null; // слишком долго для больших
+    let jobs = Array.from({length: n}, (_, i) => i);
+    let minCost = Infinity;
+    let best = null;
     function* permute(a, l, r) {
       if (l === r) yield a.slice();
       else {
@@ -235,203 +348,57 @@ class AssignmentView {
       }
     }
     for (let perm of permute(jobs, 0, n-1)) {
-      let sumC = 0, times = [];
-      for (let i = 0; i < n; i++) {
-        sumC += C[i][perm[i]];
-        times.push(T[i][perm[i]]);
+      let cost = 0;
+      for (let i = 0; i < n; i++) cost += C[i][perm[i]];
+      if (cost < minCost) {
+        minCost = cost;
+        best = perm.slice();
       }
-      let Tval = params.T_type === 'min' ? Math.max(...times) : Math.min(...times);
-      all.push({ perm: perm.slice(), sumC, Tval });
     }
-    // Найти все равновыгодные решения
-    minT = Math.min(...all.map(x => x.Tval));
-    let minTsolutions = all.filter(x => x.Tval === minT);
-    minS = Math.min(...minTsolutions.map(x => x.sumC));
-    bests = minTsolutions.filter(x => x.sumC === minS);
-    if (!bests.length) return '<div>Нет решений</div>';
-    let html = '<h3>Полный перебор</h3>';
-    bests.forEach((best, idx) => {
-      html += `<b>Решение №${idx + 1}</b>`;
+    if (best) return {assignment: best, cost: minCost};
+    return null;
+  }
+  renderBranchMethod(C) {
+    let html = '<h3>Метод ветвей и границ</h3>';
+    const bb = branchAndBoundAssignment(C);
+    if (bb) {
+      html += '<div><b>Решение:</b></div>';
       html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
-      for (let i = 0; i < n; i++) {
-        html += `<tr><th>x${i + 1}</th><td>${best.perm[i] + 1} (C: ${C[i][best.perm[i]]}, T: ${T[i][best.perm[i]]})</td></tr>`;
+      for (let i = 0; i < bb.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${bb.assignment[i] + 1} (C: ${C[i][bb.assignment[i]]})</td></tr>`;
       }
-      html += `<tr><th>S</th><td>${best.sumC}</td></tr>`;
-      html += `<tr><th>T</th><td>${best.Tval}</td></tr>`;
       html += '</tbody></table>';
-    });
-    // Ход решения
-    html += '<details><summary>Ход решения</summary>';
-    html += '<table><thead><tr><th>Перестановка</th><th>S</th><th>T</th></tr></thead><tbody>';
-    all.forEach(x => {
-      html += `<tr><td>${x.perm.map(i => i + 1).join('-')}</td><td>${x.sumC}</td><td>${x.Tval}</td></tr>`;
-    });
-    html += '</tbody></table></details>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${bb.cost}</div>`;
+    }
     return html;
   }
-  renderBnbStrict(C, T, params) {
-    // Корректная обработка ограничений
-    const S = (params.S === '' || isNaN(params.S)) ? null : params.S;
-    const T_limit = (params.T_limit === '' || isNaN(params.T_limit)) ? null : params.T_limit;
-    let allSolutions = [];
-    // Модифицируем branchAndBoundStrictAssignment для сбора всех решений
-    function collectAllBnB(C, T, S_limit, T_type, T_limit) {
-      const n = C.length;
-      let bestT = T_type === 'min' ? Infinity : -Infinity;
-      let bestS = Infinity;
-      let all = [];
-      function dfs(i, used, perm, sumC, times) {
-        if (i === n) {
-          let Tval = T_type === 'min' ? Math.max(...times) : Math.min(...times);
-          let valid = true;
-          if (S_limit !== null && sumC > S_limit) valid = false;
-          if (T_limit !== null) {
-            if (T_type === 'min' && Tval > T_limit) valid = false;
-            if (T_type === 'max' && Tval < T_limit) valid = false;
-          }
-          if (valid) {
-            all.push({ perm: perm.slice(), sumC, Tval });
-            if ((T_type === 'min' && (Tval < bestT || (Tval === bestT && sumC < bestS))) ||
-                (T_type === 'max' && (Tval > bestT || (Tval === bestT && sumC < bestS)))) {
-              bestT = Tval;
-              bestS = sumC;
-            }
-          }
-          return;
-        }
-        for (let j = 0; j < n; j++) {
-          if (!used[j]) {
-            let newSumC = sumC + C[i][j];
-            if (S_limit !== null && newSumC > S_limit) continue;
-            used[j] = true;
-            perm.push(j);
-            times.push(T[i][j]);
-            dfs(i + 1, used, perm, newSumC, times);
-            used[j] = false;
-            perm.pop();
-            times.pop();
-          }
-        }
+  renderLPMethod(C) {
+    let html = '<h3>Линейное программирование</h3>';
+    const lp = lpAssignment(C);
+    if (lp) {
+      html += '<div><b>Решение:</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < lp.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${lp.assignment[i] + 1} (C: ${C[i][lp.assignment[i]]})</td></tr>`;
       }
-      dfs(0, Array(n).fill(false), [], 0, []);
-      // Выбрать все равновыгодные
-      let bests = all.filter(x => x.Tval === bestT && x.sumC === bestS);
-      return { bests, all };
+      html += '</tbody></table>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${lp.cost}</div>`;
     }
-    let { bests, all } = collectAllBnB(C, T, S, params.T_type, T_limit);
-    let html = '<h3>Ветвей и границ (строгий)</h3>';
-    if (bests.length) {
-      bests.forEach((best, idx) => {
-        html += `<b>Решение №${idx + 1}</b>`;
-        html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
-        for (let i = 0; i < C.length; i++) {
-          html += `<tr><th>x${i + 1}</th><td>${best.perm[i] + 1} (C: ${C[i][best.perm[i]]}, T: ${T[i][best.perm[i]]})</td></tr>`;
-        }
-        html += `<tr><th>S</th><td>${best.sumC}</td></tr>`;
-        html += `<tr><th>T</th><td>${best.Tval}</td></tr>`;
-        html += '</tbody></table>';
-      });
-    } else {
-      html += '<div>Нет допустимого решения</div>';
-    }
-    // Ход решения
-    html += '<details><summary>Ход решения</summary>';
-    html += '<table><thead><tr><th>Перестановка</th><th>S</th><th>T</th></tr></thead><tbody>';
-    all.forEach(x => {
-      html += `<tr><td>${x.perm.map(i => i + 1).join('-')}</td><td>${x.sumC}</td><td>${x.Tval}</td></tr>`;
-    });
-    html += '</tbody></table></details>';
     return html;
   }
-  renderAstar(C, T, params) {
-    // Корректная обработка ограничений
-    const S = (params.S === '' || isNaN(params.S)) ? null : params.S;
-    const T_limit = (params.T_limit === '' || isNaN(params.T_limit)) ? null : params.T_limit;
-    // Модифицируем astarAssignment для сбора всех решений
-    function collectAllAstar(C, T, S_limit, T_type, T_limit) {
-      const n = C.length;
-      let bestT = T_type === 'min' ? Infinity : -Infinity;
-      let bestS = Infinity;
-      let all = [];
-      function dfs(i, used, perm, sumC, times) {
-        if (i === n) {
-          let Tval = T_type === 'min' ? Math.max(...times) : Math.min(...times);
-          let valid = true;
-          if (S_limit !== null && sumC > S_limit) valid = false;
-          if (T_limit !== null) {
-            if (T_type === 'min' && Tval > T_limit) valid = false;
-            if (T_type === 'max' && Tval < T_limit) valid = false;
-          }
-          if (valid) {
-            all.push({ perm: perm.slice(), sumC, Tval });
-            if ((T_type === 'min' && (Tval < bestT || (Tval === bestT && sumC < bestS))) ||
-                (T_type === 'max' && (Tval > bestT || (Tval === bestT && sumC < bestS)))) {
-              bestT = Tval;
-              bestS = sumC;
-            }
-          }
-          return;
-        }
-        for (let j = 0; j < n; j++) {
-          if (!used[j]) {
-            let newSumC = sumC + C[i][j];
-            if (S_limit !== null && newSumC > S_limit) continue;
-            used[j] = true;
-            perm.push(j);
-            times.push(T[i][j]);
-            dfs(i + 1, used, perm, newSumC, times);
-            used[j] = false;
-            perm.pop();
-            times.pop();
-          }
-        }
+  renderGreedyMethod(C) {
+    let html = '<h3>Жадные и эвристические методы</h3>';
+    const greedy = greedyAssignment(C);
+    if (greedy) {
+      html += '<div><b>Решение:</b></div>';
+      html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
+      for (let i = 0; i < greedy.assignment.length; i++) {
+        html += `<tr><th>x${i + 1}</th><td>${greedy.assignment[i] + 1} (C: ${C[i][greedy.assignment[i]]})</td></tr>`;
       }
-      dfs(0, Array(n).fill(false), [], 0, []);
-      // Выбрать все равновыгодные
-      let bests = all.filter(x => x.Tval === bestT && x.sumC === bestS);
-      return { bests, all };
+      html += '</tbody></table>';
+      html += `<div><b>Ответ:</b> Суммарная стоимость = ${greedy.cost}</div>`;
     }
-    let { bests, all } = collectAllAstar(C, T, S, params.T_type, T_limit);
-    let html = '<h3>A* (A-star)</h3>';
-    if (bests.length) {
-      bests.forEach((best, idx) => {
-        html += `<b>Решение №${idx + 1}</b>`;
-        html += '<table><thead><tr><th></th><th>Назначение</th></tr></thead><tbody>';
-        for (let i = 0; i < C.length; i++) {
-          html += `<tr><th>x${i + 1}</th><td>${best.perm[i] + 1} (C: ${C[i][best.perm[i]]}, T: ${T[i][best.perm[i]]})</td></tr>`;
-        }
-        html += `<tr><th>S</th><td>${best.sumC}</td></tr>`;
-        html += `<tr><th>T</th><td>${best.Tval}</td></tr>`;
-        html += '</tbody></table>';
-      });
-    } else {
-      html += '<div>Нет допустимого решения</div>';
-    }
-    // Ход решения
-    html += '<details><summary>Ход решения</summary>';
-    html += '<table><thead><tr><th>Перестановка</th><th>S</th><th>T</th></tr></thead><tbody>';
-    all.forEach(x => {
-      html += `<tr><td>${x.perm.map(i => i + 1).join('-')}</td><td>${x.sumC}</td><td>${x.Tval}</td></tr>`;
-    });
-    html += '</tbody></table></details>';
     return html;
-  }
-  renderExtraMethods(Craw, params) {
-    const extraDiv = document.getElementById('extra-methods');
-    let html = '';
-    const C = Craw;
-    html += '<div style="margin-bottom:10px">';
-    html += '<label><input type="checkbox" id="solve-bnb-strict" ' + (params.solveBnbStrict ? 'checked' : '') + '> Ветвей и границ (строгий)</label> ';
-    html += '<label><input type="checkbox" id="solve-astar" ' + (params.solveAstar ? 'checked' : '') + '> A* (A-star)</label>';
-    html += '</div>';
-    const { matrix: T } = this.getMatrixT();
-    if (params.solveBnbStrict) {
-      html += this.renderBnbStrict(C, T, params);
-    }
-    if (params.solveAstar) {
-      html += this.renderAstar(C, T, params);
-    }
-    extraDiv.innerHTML = html;
   }
 }
 
