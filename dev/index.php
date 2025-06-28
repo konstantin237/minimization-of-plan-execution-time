@@ -58,12 +58,12 @@
             <input id="solve-astar" type="checkbox" checked>A* (A-star)
           </label>
         </div>
-        <button id="solve-btn" type="button">Решить</button>
+        <button class="btn btn_solve" id="solve-btn" type="button">Решить</button>
       </form>
       <div class="preset-buttons">
-        <button id="fill-default" type="button">Заполнить значениями по умолчанию</button>
-        <button id="fill-test" type="button">Заполнить тестовыми значениями</button>
-        <button id="clear-all" type="button">Очистить все поля</button>
+        <button class="btn" id="fill-default" type="button">Заполнить значениями по умолчанию</button>
+        <button class="btn" id="fill-test" type="button">Заполнить тестовыми значениями</button>
+        <button class="btn" id="clear-all" type="button">Очистить все поля</button>
       </div>
       <section id="solution">
         <h2>Ответ</h2>

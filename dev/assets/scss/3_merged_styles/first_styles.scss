@@ -83,19 +83,29 @@ input[type="number"], select {
   width: 100%;
   box-sizing: border-box;
 }
-button#solve-btn {
+
+.btn{
   padding: 0.7rem 2rem;
-  background: #2a7ae2;
+  background: #527094;
   color: #fff;
   border: none;
   border-radius: 0.5rem;
   font-size: 1.1rem;
   cursor: pointer;
   transition: background 0.2s;
+
+  &:hover {
+    background: #2f3e53;
+  }
+
+  &_solve{
+    background: #2a7ae2;
+    &:hover {
+      background: #1a5bb8;
+      }
+  }
 }
-button#solve-btn:hover {
-  background: #1a5bb8;
-}
+
 #solution {
   margin-top: 2rem;
   background: #fff;
