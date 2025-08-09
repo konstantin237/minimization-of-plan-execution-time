@@ -1,0 +1,12 @@
+@media (max-width: 635px) {
+    .assignment-form {
+      &__matrix-inputs {
+        flex-wrap: wrap !important; 
+      }
+  
+      &__matrix-block{
+        flex: none !important;  
+        width: 100% !important;
+      }
+    }
+  } 

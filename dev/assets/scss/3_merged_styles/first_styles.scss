@@ -1,3 +1,5 @@
+
+
 // Блок assignment (основной контейнер)
 .assignment {
   margin: 0 auto;
@@ -119,6 +121,7 @@
   }
 
   &_preset {
+    text-align: left;
     background: #527094;
     
     &:hover {
@@ -185,3 +188,7 @@ td, th {
   vertical-align: middle;
   min-width: 6em;
 } 
+
+
+
+@import "../1_basic_components/media_queries/635";
