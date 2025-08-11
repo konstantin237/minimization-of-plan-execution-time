@@ -1,0 +1,21 @@
+@media (max-width: 1125px) {
+
+    .preset-buttons{
+        //мобилка
+       //grid-template-areas: "btn_solve btn_solve btn_fill-5x5-matrix btn_fill-5x5-matrix btn_fill-3x3-matrix btn_fill-3x3-matrix btn_clear-all btn_clear-all";
+      grid-template-columns: 1.25fr 1.25fr;
+      grid-template-rows: auto;
+      grid-template-areas: "btn_solve btn_solve"
+                           "btn_fill-5x5-matrix btn_fill-3x3-matrix" 
+                           "btn_clear-all .";
+      }
+
+      
+  .btn{
+    &_preset{
+      font-size: 0.8rem;
+    }
+  
+  }
+      
+}

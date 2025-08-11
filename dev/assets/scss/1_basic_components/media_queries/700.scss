@@ -1,0 +1,20 @@
+@media (max-width: 700px) {
+
+  .assignment-form {
+      &__matrix-inputs {
+        flex-wrap: wrap; 
+      }
+  
+      &__matrix-block{
+        flex: none;  
+        width: 100%;
+      }
+    }
+  
+
+  .btn{
+    padding: 1rem 1rem;
+    font-size: .75rem;
+  }
+
+}

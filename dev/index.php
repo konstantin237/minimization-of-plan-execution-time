@@ -52,27 +52,19 @@
           <label class="assignment-form__checkbox-label">
             <input class="assignment-form__checkbox" id="hide-invalid-solutions" type="checkbox" checked>Не отображать решения, которые не удовлетворяют ограничениям
           </label>
-          <h3 class="assignment-form__methods-title">Работают правильно:</h3>
-          <label class="assignment-form__checkbox-label">
-            <input class="assignment-form__checkbox" id="solve-bnb-strict" type="checkbox" checked>Ветвей и границ (строгий)
-          </label>
-          <label class="assignment-form__checkbox-label">
-            <input class="assignment-form__checkbox" id="solve-astar" type="checkbox" checked>A* (A-star)
-          </label>
         </div>
-        <button class="btn btn_solve" id="solve-btn" type="button">Решить</button>
+        <div class="preset-buttons">       
+          <button class="btn btn_solve" id="solve-btn" type="button">Решить </button>
+          <button class="btn btn_preset btn_fill-5x5-matrix" id="fill-default" type="button">Заполнить значениями<br> по умолчанию (матрица&nbsp;5*5)</button>
+          <button class="btn btn_preset btn_fill-3x3-matrix" id="fill-test" type="button">Заполнить значениями<br> по умолчанию (матрица&nbsp;3*3)</button>
+          <button class="btn btn_preset btn_clear-all" id="clear-all" type="button">Очистить все поля</button>
+        </div>
       </form>
-      <div class="preset-buttons">
-        <button class="btn btn_preset" id="fill-default" type="button">Заполнить значениями<br>по умолчанию</button>
-        <button class="btn btn_preset" id="fill-test" type="button">Заполнить тестовыми<br>значениями</button>
-        <button class="btn btn_preset" id="clear-all" type="button">Очистить<br>все поля</button>
-      </div>
       <section class="solution" id="solution">
         <h2 class="solution__title">Ответ</h2>
         <p class="solution__answer" id="answer"></p>
         <h3 class="solution__subtitle">Решение полным перебором</h3>
         <div class="solution__table" id="solution-table"></div>
-        <div class="solution__extra-methods" id="extra-methods"></div>
       </section>
     </main>
     <script type="module" src="./assets/js/first_script.js"> </script>

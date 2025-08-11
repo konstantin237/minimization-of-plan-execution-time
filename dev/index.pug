@@ -41,36 +41,28 @@ html
           label.assignment-form__checkbox-label
             input.assignment-form__checkbox#hide-invalid-solutions(type="checkbox" checked)
             | Не отображать решения, которые не удовлетворяют ограничениям
-          h3.assignment-form__methods-title Работают правильно:
-          label.assignment-form__checkbox-label
-            input.assignment-form__checkbox#solve-bnb-strict(type="checkbox" checked)
-            | Ветвей и границ (строгий)
+          
 
-          label.assignment-form__checkbox-label
-            input.assignment-form__checkbox#solve-astar(type="checkbox" checked)
-            | A* (A-star)
+        .preset-buttons        
+          button.btn.btn_solve#solve-btn(type="button") Решить 
 
-        button.btn.btn_solve#solve-btn(type="button") Решить
-      .preset-buttons
-        button.btn.btn_preset#fill-default(type="button")
-          | Заполнить значениями
-          br
-          | по умолчанию
+          button.btn.btn_preset.btn_fill-5x5-matrix#fill-default(type="button")
+            | Заполнить значениями
+            br
+            |  по умолчанию (матрица&nbsp;5*5)
 
-        button.btn.btn_preset#fill-test(type="button")
-          | Заполнить тестовыми
-          br
-          | значениями
+          button.btn.btn_preset.btn_fill-3x3-matrix#fill-test(type="button")
+            | Заполнить значениями
+            br
+            |  по умолчанию (матрица&nbsp;3*3)
 
-        button.btn.btn_preset#clear-all(type="button")
-          | Очистить
-          br
-          | все поля
+          button.btn.btn_preset.btn_clear-all#clear-all(type="button")
+            | Очистить все поля
 
       section.solution#solution
         h2.solution__title Ответ
         p.solution__answer#answer
         h3.solution__subtitle Решение полным перебором
         div.solution__table#solution-table
-        div.solution__extra-methods#extra-methods
+        
     script(type="module" src="./assets/js/first_script.js") 

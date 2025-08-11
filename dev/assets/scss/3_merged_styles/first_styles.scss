@@ -1,14 +1,14 @@
-
+body{margin: 0;}
 
 // Блок assignment (основной контейнер)
 .assignment {
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 1rem;
   width: 90%;
 
   &__title {
     text-align: center;
-    margin-bottom: 2rem;
+    margin: 1rem 0;
   }
 }
 
@@ -92,13 +92,24 @@
 
 // Блок preset-buttons (кнопки предустановок)
 .preset-buttons {
-  display: flex;
-  gap: max(10px, 1vw);
-}
+   display: grid;
+   grid-template-columns: 0.5fr 0.5fr 0.5fr;
+   grid-template-rows: 70px 70px;
+   grid-template-areas: "btn_solve . ."
+                        "btn_fill-5x5-matrix btn_fill-3x3-matrix btn_clear-all";
+
+  row-gap:10px;
+  column-gap:15px;
+
+
+  }
+
 
 // Блок btn (кнопки)
 .btn {
-  max-width: 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 0.7rem 2rem;
   background: #527094;
   color: #fff;
@@ -114,7 +125,7 @@
 
   &_solve {
     background: #2a7ae2;
-    
+    grid-area: btn_solve;
     &:hover {
       background: #1a5bb8;
     }
@@ -123,11 +134,19 @@
   &_preset {
     text-align: left;
     background: #527094;
-    
+    align-items: center;
+    justify-content: center;
+
     &:hover {
       background: #2f3e53;
     }
+
   }
+
+  &_fill-5x5-matrix{grid-area: btn_fill-5x5-matrix}
+  &_fill-3x3-matrix{ grid-area: btn_fill-3x3-matrix}
+  &_clear-all{ grid-area: btn_clear-all}
+
 }
 
 // Блок solution (секция с решением)
@@ -191,4 +210,5 @@ td, th {
 
 
 
-@import "../1_basic_components/media_queries/635";
+@import "../1_basic_components/media_queries/700";
+@import "../1_basic_components/media_queries/1125";
